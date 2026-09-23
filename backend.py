@@ -1,9 +1,10 @@
 import os
 from dotenv import load_dotenv
-
+from operator import itemgetter
 from langchain_openai import ChatOpenAI
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain_core.runnables import RunnablePassthrough
 from langchain_core.messages import trim_messages
 from langchain_core.prompts import (
     ChatPromptTemplate,
@@ -99,7 +100,14 @@ def demo_conversation(input_text, memory):
     """
     llm = demo_chatbot()
 
-    base_chain = CHAT_PROMPT | llm
+    base_chain = (
+        RunnablePassthrough.assign(
+            history=itemgetter("history") | trimmer
+        )
+        | CHAT_PROMPT
+        | llm
+    )
+
 
     chat_with_history = RunnableWithMessageHistory(
         base_chain,
